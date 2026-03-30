@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1年の振り返りアンケート</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+:root{
+  --ink:#1a1a2e;--ink-light:#3a3a5c;
+  --paper:#faf8f3;--paper-warm:#f0ebe0;
+  --accent:#8b4513;--gold:#c9a84c;--accent-light:#d4956a;
+  --border:#c8bfb0;--shadow:rgba(26,26,46,.12);
+  --ok:#4a7c59;--ng:#8b1a1a;
+  --g1:#2e6b8b;--g2:#4a7c59;--g3:#8b4513;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+.page{display:none;min-height:100vh;}
+.page.active{display:flex;flex-direction:column;}
+/* TOP */
+#page-top{align-items:center;justify-content:center;padding:2rem;}
+.top-header{text-align:center;margin-bottom:3rem;}
+.kamon{width:80px;height:80px;margin:0 auto 1.5rem;border:3px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);background:linear-gradient(135deg,var(--paper),var(--paper-warm));box-shadow:0 4px 20px var(--shadow);}
+.top-header h1{font-family:'Noto Serif JP',serif;font-size:2rem;font-weight:700;letter-spacing:.1em;}
+.top-header p{margin-top:.5rem;color:var(--ink-light);font-size:.9rem;}
+.role-cards{display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;}
+.role-card{background:white;border:1.5px solid var(--border);border-radius:12px;padding:2.5rem 2rem;width:220px;text-align:center;cursor:pointer;transition:all .3s;box-shadow:0 2px 12px var(--shadow);position:relative;overflow:hidden;}
+.role-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--gold));transform:scaleX(0);transition:transform .3s;}
+.role-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px var(--shadow);border-color:var(--gold);}
+.role-card:hover::before{transform:scaleX(1);}
+.role-card .icon{font-size:3rem;margin-bottom:1rem;}
+.role-card h2{font-family:'Noto Serif JP',serif;font-size:1.3rem;margin-bottom:.5rem;}
+.role-card p{font-size:.82rem;color:var(--ink-light);line-height:1.6;}
+/* FORM */
+.form-page{align-items:center;justify-content:center;padding:2rem;}
+.form-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:2.5rem;width:100%;max-width:500px;box-shadow:0 4px 30px var(--shadow);animation:fadeInUp .5s ease;}
+.form-card h2{font-family:'Noto Serif JP',serif;font-size:1.4rem;margin-bottom:1.5rem;}
+.fg{margin-bottom:1.2rem;}
+label{display:block;font-size:.85rem;font-weight:500;color:var(--ink-light);margin-bottom:.4rem;}
+input,select,textarea{width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.95rem;color:var(--ink);background:var(--paper);transition:border-color .2s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);background:white;}
+textarea{resize:vertical;min-height:80px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.75rem 1.5rem;border:none;border-radius:8px;font-family:inherit;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.02em;}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:white;width:100%;margin-top:.5rem;box-shadow:0 3px 12px rgba(139,69,19,.3);}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(139,69,19,.4);}
+.btn-s{background:var(--paper-warm);color:var(--ink-light);border:1px solid var(--border);}
+.btn-s:hover{background:var(--paper);}
+.btn-g{background:linear-gradient(135deg,var(--gold),#e8c06a);color:var(--ink);font-weight:700;}
+.btn-sm{padding:.4rem .9rem;font-size:.82rem;}
+.back-link{display:inline-flex;align-items:center;gap:.3rem;color:var(--ink-light);font-size:.85rem;cursor:pointer;margin-bottom:1rem;transition:color .2s;}
+.back-link:hover{color:var(--accent);}
+.link-text{color:var(--accent);cursor:pointer;text-decoration:underline;}
+.text-sm{font-size:.82rem;color:var(--ink-light);}
+/* DASHBOARD */
+.dashboard{flex-direction:column;}
+.dash-header{background:white;border-bottom:1.5px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px var(--shadow);position:sticky;top:0;z-index:100;}
+.dash-header h1{font-family:'Noto Serif JP',serif;font-size:1.2rem;display:flex;align-items:center;gap:.5rem;}
+.user-badge{background:var(--paper-warm);border:1px solid var(--border);border-radius:20px;padding:.3rem .8rem;font-size:.82rem;color:var(--ink-light);}
+.dash-content{padding:2rem;flex:1;}
+/* QUESTIONNAIRE */
+.q-wrap{max-width:700px;margin:0 auto;}
+.q-prog{background:var(--paper-warm);border-radius:8px;height:8px;margin-bottom:2rem;overflow:hidden;}
+.q-prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:8px;transition:width .5s ease;}
+.q-sec{background:white;border:1.5px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 2px 12px var(--shadow);}
+.q-sec-title{font-family:'Noto Serif JP',serif;font-size:1.1rem;font-weight:600;color:var(--accent);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--paper-warm);}
+.q-item{margin-bottom:1.2rem;}
+.q-item label{font-size:.9rem;font-weight:500;color:var(--ink);margin-bottom:.5rem;}
+.radio-group{display:flex;flex-wrap:wrap;gap:.5rem;}
+.radio-opt{display:flex;align-items:center;gap:.3rem;}
+.radio-opt input{width:auto;accent-color:var(--accent);}
+.radio-opt label{font-size:.88rem;cursor:pointer;color:var(--ink);margin:0;}
+.cb-list{display:flex;flex-direction:column;gap:.4rem;}
+.cb-item{display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;}
+.cb-item input{width:auto;accent-color:var(--accent);}
+/* TEACHER DASH */
+.class-card{background:linear-gradient(135deg,var(--ink),var(--ink-light));color:white;border-radius:12px;padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.class-code{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:.5rem 1rem;font-size:1.3rem;font-weight:700;letter-spacing:.15em;font-family:'Courier New',monospace;}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;}
+.student-card{background:white;border:1.5px solid var(--border);border-radius:10px;padding:1.2rem;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px var(--shadow);}
+.student-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow);}
+.s-num{font-size:.75rem;color:var(--ink-light);margin-bottom:.3rem;}
+.s-name{font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:600;margin-bottom:.6rem;}
+.grade-badges{display:flex;gap:.3rem;flex-wrap:wrap;}
+.gb{display:inline-block;padding:.2rem .5rem;border-radius:20px;font-size:.7rem;font-weight:600;}
+.gb1{background:#e0eff8;color:var(--g1);}
+.gb2{background:#e0f0e8;color:var(--g2);}
+.gb3{background:#f8eee0;color:var(--g3);}
+.gb-none{background:var(--paper-warm);color:var(--ink-light);}
+/* DETAIL */
+.yoroku-preview{max-width:860px;margin:0 auto;}
+.grade-tabs{display:flex;border-bottom:2px solid var(--border);}
+.grade-tab{padding:.7rem 1.8rem;font-size:.9rem;cursor:pointer;border-radius:10px 10px 0 0;color:var(--ink-light);font-weight:500;border:1.5px solid transparent;border-bottom:none;margin-bottom:-2px;transition:all .2s;}
+.grade-tab.g1.active{background:#e8f4fb;color:var(--g1);border-color:var(--border);}
+.grade-tab.g2.active{background:#e8f5ee;color:var(--g2);border-color:var(--border);}
+.grade-tab.g3.active{background:#fdf0e4;color:var(--g3);border-color:var(--border);}
+.grade-tab:not(.active):hover{background:var(--paper-warm);}
+.grade-panel{display:none;padding-top:1.5rem;animation:fadeInUp .3s ease;}
+.grade-panel.active{display:block;}
+.y-card{background:white;border:2px solid var(--border);border-radius:12px;padding:2rem;box-shadow:0 4px 20px var(--shadow);margin-bottom:1.2rem;}
+.y-card h3{font-family:'Noto Serif JP',serif;font-size:.95rem;color:var(--accent);margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:1px dashed var(--border);display:flex;align-items:center;gap:.4rem;}
+.y-text{font-size:.95rem;line-height:2;color:var(--ink);font-family:'Noto Serif JP',serif;white-space:pre-wrap;background:var(--paper);padding:1rem 1.2rem;border-radius:8px;border:1px solid var(--paper-warm);min-height:60px;}
+.act-bar{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.copy-btn{font-size:.8rem;padding:.3rem .8rem;background:var(--paper-warm);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .2s;}
+.copy-btn:hover{background:var(--border);}
+/* STATUS */
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:500;}
+.b-ok{background:#e6f4eb;color:var(--ok);}
+.b-pend{background:#f9f0e0;color:#8b6914;}
+.b-none{background:var(--paper-warm);color:var(--ink-light);}
+/* ALERTS */
+.alert{padding:.8rem 1rem;border-radius:8px;font-size:.88rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:.5rem;}
+.a-err{background:#fdf0f0;border:1px solid #e8c0c0;color:var(--ng);}
+.a-ok{background:#f0f7f2;border:1px solid #b8dcc4;color:var(--ok);}
+.a-info{background:#f0f4ff;border:1px solid #c0cef0;color:#2a3a8b;}
+.a-warn{background:#fffbf0;border:1px solid #e8d88c;color:#7a5f00;}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(26,26,46,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:2rem;backdrop-filter:blur(4px);}
+.modal-bg.open{display:flex;}
+.modal{background:white;border-radius:16px;padding:2rem;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:fadeInUp .3s ease;}
+.modal h3{font-family:'Noto Serif JP',serif;font-size:1.2rem;margin-bottom:1.5rem;}
+.spinner{width:40px;height:40px;border:3px solid var(--paper-warm);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:2rem auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{text-align:center;color:var(--ink-light);font-size:.9rem;margin-top:.5rem;}
+/* MISC */
+.update-card{background:white;border:1.5px solid var(--gold);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 12px var(--shadow);}
+.update-card h3{font-family:'Noto Serif JP',serif;font-size:1rem;color:var(--accent);margin-bottom:.8rem;}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.sec-header h2{font-family:'Noto Serif JP',serif;font-size:1.2rem;}
+.promote-banner{background:linear-gradient(135deg,#f0f9ff,#e8f5e9);border:1.5px solid #b8dcc4;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:.88rem;}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+  .role-cards{flex-direction:column;align-items:center;}
+  .role-card{width:100%;max-width:300px;}
+  .dash-content{padding:1rem;}
+  .form-card{padding:1.5rem;}
+  .grade-tab{padding:.5rem 1rem;font-size:.82rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== STATE ===== -->
+<script>
+const GRADE={1:'高校Ⅰ年',2:'高校Ⅱ年',3:'高校Ⅲ年'};
+function gl(g){return GRADE[g]||g+'年';}
+
+/* ローカルDB（教員・クラスコード） */
+const APP={role:null,user:null,detailSid:null,studentCache:[]};
+const LDB={teachers:{},classes:{},c2g:{}};
+(function(){
+  try{const d=JSON.parse(localStorage.getItem('yoroku_ldb')||'{}');
+    Object.assign(LDB,{teachers:d.teachers||{},classes:d.classes||{},c2g:d.c2g||{}});
+  }catch(e){}
+})();
+function saveL(){localStorage.setItem('yoroku_ldb',JSON.stringify(LDB));}
+
+/* Supabase */
+function sbConf(){try{return JSON.parse(localStorage.getItem('yoroku_sb')||'{}');}catch{return {};}}
+function sbSave(url,key){localStorage.setItem('yoroku_sb',JSON.stringify({url,key}));}
+function sbOk(){const c=sbConf();return !!(c.url&&c.key);}
+async function sb(path,method='GET',body=null,qs=''){
+  const{url,key}=sbConf();
+  if(!url||!key)throw new Error('Supabase未設定');
+  const r=await fetch(`${url}/rest/v1/${path}${qs?'?'+qs:''}`,{
+    method,
+    headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'return=representation'},
+    body:body?JSON.stringify(body):null
+  });
+  if(r.status===204)return null;
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.message||d.error||'HTTP '+r.status);
+  return d;
+}
+async function sbUpsert(table,row){
+  const{url,key}=sbConf();
+  const r=await fetch(`${url}/rest/v1/${table}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=representation'},
+    body:JSON.stringify(row)
+  });
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.message||d.error||'HTTP '+r.status);
+  return d;
+}
+
+/* ユーティリティ */
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function setAlert(id,msg,t='err'){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="alert a-${t}">⚠ ${msg}</div>`;}
+function clearAlert(id){const el=document.getElementById(id);if(el)el.innerHTML='';}
+function v(id){return(document.getElementById(id)?.value||'').trim();}
+function toH(s){return s.replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g,' ').trim();}
+function toN(s){return parseInt(toH(s));}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:6},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+function selectRole(r){APP.role=r;showPage(r==='student'?'page-s-choice':'page-t-choice');}
+function autoCode(id){document.getElementById(id).value=genCode();}
+</script>
+
+<!-- TOP -->
+<div id="page-top" class="page active">
+  <div class="top-header">
+    <div class="kamon">📝</div>
+    <h1>1年の振り返りアンケート</h1>
+    <p>この1年間を振り返って、あなたのことを教えてください</p>
+  </div>
+  <div class="role-cards">
+    <div class="role-card" onclick="selectRole('student')">
+      <div class="icon">🎓</div><h2>生徒の方</h2>
+      <p>アンケートに答えて<br>1年間の振り返りを<br>記入しましょう</p>
+    </div>
+    <div class="role-card" onclick="selectRole('teacher')">
+      <div class="icon">👨‍🏫</div><h2>先生の方</h2>
+      <p>生徒の振り返りを<br>確認・管理できます</p>
+    </div>
+  </div>
+</div>
+
+<!-- 生徒 選択 -->
+<div id="page-s-choice" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-top')">← 戻る</span>
+    <h2>📝 振り返りアンケート</h2>
+    <button class="btn btn-p" onclick="showPage('page-s-reg')">初めて回答する（新規登録）</button>
+    <button class="btn btn-s" style="width:100%;margin-top:.8rem;" onclick="showPage('page-s-login')">続きから・2年目以降（ログイン）</button>
+  </div>
+</div>
+
+<!-- 生徒 新規登録 -->
+<div id="page-s-reg" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-s-choice')">← 戻る</span>
+    <h2>📝 はじめに登録しましょう</h2>
+    <div class="alert a-info" style="font-size:.82rem;">生徒番号は来年度も同じIDとして使用します。正確に入力してください。</div>
+    <div id="s-reg-alert"></div>
+    <div class="fg"><label>クラスコード（担任の先生から聞いてください）</label>
+      <input type="text" id="sr-code" placeholder="例: ABC123" style="text-transform:uppercase;letter-spacing:.1em;" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="fg"><label>生徒番号（学校発行のID）</label><input type="text" id="sr-sid" placeholder="例: 20240123"></div>
+    <div class="fg"><label>クラス</label>
+      <select id="sr-class"><option value="">選択してください</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option>
+      </select>
+    </div>
+    <div class="fg"><label>出席番号</label><input type="number" id="sr-num" min="1" max="50" placeholder="例: 15"></div>
+    <div class="fg"><label>氏名</label>
+      <div style="display:flex;gap:.6rem;">
+        <input type="text" id="sr-sei" placeholder="姓（例：山田）" style="flex:1;">
+        <input type="text" id="sr-mei" placeholder="名（例：太郎）" style="flex:1;">
+      </div>
+    </div>
+    <div class="fg"><label>パスワード（4文字以上・来年度も使用）</label><input type="password" id="sr-pw"></div>
+    <button class="btn btn-p" onclick="regStudent()">登録してアンケートを始める</button>
+  </div>
+</div>
+
+<!-- 生徒 ログイン -->
+<div id="page-s-login" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-s-choice')">← 戻る</span>
+    <h2>🔑 続きから回答する</h2>
+    <div id="s-login-alert"></div>
+    <div class="fg"><label>生徒番号</label><input type="text" id="sl-sid" placeholder="例: 20240123"></div>
+    <div class="fg"><label>パスワード</label><input type="password" id="sl-pw"></div>
+    <div class="alert a-warn" style="font-size:.82rem;margin-top:.5rem;">2年目以降の方：今年度のクラスコード・番号も入力してください</div>
+    <div class="fg"><label>今年度のクラスコード</label>
+      <input type="text" id="sl-code" placeholder="今年の担任の先生から" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="fg"><label>今年度のクラス</label>
+      <select id="sl-class"><option value="">選択してください</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option>
+      </select>
+    </div>
+    <div class="fg"><label>今年度の出席番号</label><input type="number" id="sl-num" placeholder="例: 12"></div>
+    <button class="btn btn-p" onclick="loginStudent()">ログイン</button>
+  </div>
+</div>
+
+<!-- 生徒 ダッシュボード -->
+<div id="page-s-dash" class="page dashboard">
+  <div class="dash-header">
+    <h1>📝 1年の振り返りアンケート</h1>
+    <span class="user-badge" id="s-header"></span>
+  </div>
+  <div class="dash-content">
+    <div class="q-wrap">
+      <div id="s-banner"></div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--ink-light);margin-bottom:.4rem;">
+        <span>回答の進捗</span><span id="q-pct">0%</span>
+      </div>
+      <div class="q-prog"><div class="q-prog-bar" id="q-bar" style="width:0%"></div></div>
+      <div id="q-content"></div>
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <button class="btn btn-s" onclick="saveAns(false)">💾 一時保存</button>
+        <button class="btn btn-p" onclick="saveAns(true)" style="flex:1;">✅ アンケートを送信する</button>
+      </div>
+      <div id="save-msg" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 教員 選択 -->
+<div id="page-t-choice" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-top')">← 戻る</span>
+    <h2>👨‍🏫 先生メニュー</h2>
+    <button class="btn btn-p" onclick="showPage('page-t-reg')">初めて使う（新規登録）</button>
+    <button class="btn btn-s" style="width:100%;margin-top:.8rem;" onclick="showPage('page-t-login')">2回目以降（ログイン）</button>
+  </div>
+</div>
+
+<!-- 教員 新規登録 -->
+<div id="page-t-reg" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-t-choice')">← 戻る</span>
+    <h2>📝 教員 新規登録</h2>
+    <div id="t-reg-alert"></div>
+    <div class="fg"><label>お名前</label><input type="text" id="tr-name" placeholder="鈴木 一郎"></div>
+    <div class="fg"><label>メールアドレス（ログインID）</label><input type="email" id="tr-email" placeholder="teacher@school.jp"></div>
+    <div class="fg"><label>今年度の担当学年</label>
+      <select id="tr-grade"><option value="">選択</option><option value="1">高校Ⅰ年</option><option value="2">高校Ⅱ年</option><option value="3">高校Ⅲ年</option></select>
+    </div>
+    <div class="fg"><label>今年度の担当クラス</label>
+      <select id="tr-class"><option value="">選択</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option>
+      </select>
+    </div>
+    <div class="fg"><label>今年度のクラスコード（英数字4〜8文字）</label>
+      <input type="text" id="tr-code" placeholder="例: A1B2C3" maxlength="8" style="text-transform:uppercase;letter-spacing:.1em;" oninput="this.value=this.value.toUpperCase()">
+      <div class="text-sm" style="margin-top:.3rem;"><span class="link-text" onclick="autoCode('tr-code')">自動生成</span></div>
+    </div>
+    <div class="fg"><label>パスワード（4文字以上）</label><input type="password" id="tr-pw"></div>
+    <button class="btn btn-p" onclick="regTeacher()">登録する</button>
+  </div>
+</div>
+
+<!-- 教員 ログイン -->
+<div id="page-t-login" class="page form-page">
+  <div class="form-card">
+    <span class="back-link" onclick="showPage('page-t-choice')">← 戻る</span>
+    <h2>🔑 教員 ログイン</h2>
+    <div id="t-login-alert"></div>
+    <div class="fg"><label>メールアドレス</label><input type="email" id="tl-email" placeholder="teacher@school.jp"></div>
+    <div class="fg"><label>パスワード</label><input type="password" id="tl-pw"></div>
+    <button class="btn btn-p" onclick="loginTeacher()">ログイン</button>
+  </div>
+</div>
+
+<!-- 教員 ダッシュボード -->
+<div id="page-t-dash" class="page dashboard">
+  <div class="dash-header">
+    <h1>📊 回答管理</h1>
+    <div style="display:flex;align-items:center;gap:.8rem;">
+      <span class="user-badge" id="t-header"></span>
+      <button class="btn btn-s btn-sm" onclick="APP.user=null;showPage('page-top')">ログアウト</button>
+    </div>
+  </div>
+  <div class="dash-content">
+    <div id="t-sb-area"></div>
+    <div id="t-promote-area"></div>
+    <div class="class-card">
+      <div>
+        <div style="font-size:.8rem;opacity:.7;margin-bottom:.3rem;">今年度クラスコード（生徒に伝えてください）</div>
+        <div class="class-code" id="t-code-disp">------</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.8rem;opacity:.7;" id="t-class-disp"></div>
+        <div style="font-size:1.8rem;font-weight:700;" id="t-count">0名</div>
+        <div style="font-size:.8rem;opacity:.7;">登録生徒数</div>
+      </div>
+    </div>
+    <div class="sec-header">
+      <h2>生徒一覧</h2>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-s btn-sm" onclick="dlExcel()">📥 Excelダウンロード</button>
+        <button class="btn btn-s btn-sm" onclick="loadStudents()">🔄 更新</button>
+      </div>
+    </div>
+    <div id="student-list" class="student-grid"></div>
+  </div>
+</div>
+
+<!-- 生徒詳細 -->
+<div id="page-detail" class="page dashboard">
+  <div class="dash-header">
+    <h1 id="detail-title">📋 回答内容</h1>
+    <button class="btn btn-s btn-sm" onclick="showPage('page-t-dash')">← 生徒一覧</button>
+  </div>
+  <div class="dash-content">
+    <div class="yoroku-preview" id="detail-content"></div>
+  </div>
+</div>
+
+<!-- MODAL: 生成中 -->
+<div class="modal-bg" id="modal-gen">
+  <div class="modal" style="text-align:center;">
+    <div class="spinner"></div>
+    <div class="loading-text">AIが文章を生成しています...<br><small style="opacity:.7;">しばらくお待ちください</small></div>
+  </div>
+</div>
+
+<!-- MODAL: 年度更新 -->
+<div class="modal-bg" id="modal-promote">
+  <div class="modal">
+    <h3>🌸 年度更新（持ち上がり設定）</h3>
+    <div class="alert a-info" style="font-size:.82rem;">新年度の担当学年・クラス・クラスコードを設定してください。</div>
+    <div id="promote-alert"></div>
+    <div class="fg"><label>新年度の担当学年</label>
+      <select id="pm-grade"><option value="1">高校Ⅰ年</option><option value="2">高校Ⅱ年</option><option value="3">高校Ⅲ年</option></select>
+    </div>
+    <div class="fg"><label>新年度の担当クラス</label>
+      <select id="pm-class"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option></select>
+    </div>
+    <div class="fg"><label>新年度のクラスコード</label>
+      <input type="text" id="pm-code" placeholder="例: XYZ789" maxlength="8" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+      <div class="text-sm" style="margin-top:.3rem;"><span class="link-text" onclick="autoCode('pm-code')">自動生成</span></div>
+    </div>
+    <div style="display:flex;gap:1rem;margin-top:1rem;">
+      <button class="btn btn-s" style="flex:1;" onclick="document.getElementById('modal-promote').classList.remove('open')">キャンセル</button>
+      <button class="btn btn-p" style="flex:1;margin-top:0;" onclick="doPromote()">年度更新する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== TEACHER ===== */
+function regTeacher(){
+  const name=v('tr-name'),email=v('tr-email'),grade=parseInt(v('tr-grade')),classNum=v('tr-class'),code=toH(v('tr-code')).toUpperCase(),pw=v('tr-pw');
+  const mis=[];
+  if(!name)mis.push('お名前');if(!email)mis.push('メールアドレス');if(!grade)mis.push('担当学年');
+  if(!classNum)mis.push('担当クラス');if(!code)mis.push('クラスコード');if(!pw)mis.push('パスワード');
+  if(mis.length)return setAlert('t-reg-alert','未入力：'+mis.join('・'));
+  if(!/^[A-Z0-9]{4,8}$/.test(code))return setAlert('t-reg-alert','クラスコードは英数字4〜8文字にしてください');
+  if(LDB.classes[code])return setAlert('t-reg-alert','そのクラスコードはすでに使われています');
+  if(pw.length<4)return setAlert('t-reg-alert','パスワードは4文字以上にしてください');
+  LDB.teachers[email]={name,email,grade,classNum,classcode:code,password:pw,prevCodes:[]};
+  LDB.classes[code]=email;LDB.c2g[code]=grade;saveL();
+  APP.user=LDB.teachers[email];enterTeacher();
+}
+
+function loginTeacher(){
+  const email=v('tl-email'),pw=v('tl-pw');
+  const t=LDB.teachers[email];
+  if(!t||t.password!==pw)return setAlert('t-login-alert','メールアドレスまたはパスワードが違います');
+  APP.user=t;enterTeacher();
+}
+
+function enterTeacher(){
+  const t=APP.user;
+  document.getElementById('t-header').textContent=t.name+' 先生';
+  document.getElementById('t-code-disp').textContent=t.classcode;
+  document.getElementById('t-class-disp').textContent=gl(t.grade)+t.classNum+'組';
+  document.getElementById('t-promote-area').innerHTML=`
+    <div class="update-card">
+      <h3>🌸 年度更新（持ち上がり）</h3>
+      <p style="font-size:.85rem;color:var(--ink-light);margin-bottom:.8rem;">新年度になったら年度更新を行い、新しいクラスコードを生徒に伝えてください。</p>
+      <button class="btn btn-s btn-sm" onclick="openPromote()">年度更新する →</button>
+    </div>`;
+  renderSbArea();
+  loadStudents();
+  showPage('page-t-dash');
+}
+
+/* Supabase設定UI */
+function renderSbArea(){
+  const ok=sbOk(),c=sbConf();
+  document.getElementById('t-sb-area').innerHTML=`
+    <div class="update-card" style="border-color:${ok?'var(--ok)':'var(--ng)'};margin-bottom:1rem;">
+      <h3>${ok?'✅ データベース接続済み（生徒がスマホから回答できます）':'⚠️ データベース未設定'}</h3>
+      <p style="font-size:.82rem;color:var(--ink-light);margin-bottom:.8rem;">
+        ${ok?'生徒が各自のスマホ・PCからアンケートに回答できます。':'SupabaseのURLとAPIキーを設定すると、生徒が各自のデバイスから回答できるようになります。'}
+      </p>
+      ${!ok?`
+      <div style="display:flex;flex-direction:column;gap:.5rem;">
+        <input type="text" id="sb-url" placeholder="Project URL（https://xxx.supabase.co）">
+        <input type="text" id="sb-key" placeholder="anon public key（sb_publishable_...）">
+        <button class="btn btn-p" style="margin-top:0;" onclick="applySb()">接続する</button>
+      </div>`:`
+      <div style="font-size:.82rem;color:var(--ok);margin-bottom:.5rem;">接続先：${c.url}</div>
+      <button class="btn btn-s btn-sm" onclick="clearSb()">接続解除</button>`}
+      <div id="sb-msg" style="margin-top:.5rem;font-size:.8rem;"></div>
+    </div>`;
+}
+
+async function applySb(){
+  const url=v('sb-url'),key=v('sb-key');
+  if(!url||!key)return;
+  document.getElementById('sb-msg').textContent='接続確認中...';
+  sbSave(url,key);
+  try{
+    await sb('students','GET',null,'limit=1');
+    document.getElementById('sb-msg').innerHTML='<span style="color:var(--ok);">✅ 接続成功！</span>';
+    setTimeout(()=>renderSbArea(),1000);
+  }catch(e){
+    document.getElementById('sb-msg').innerHTML=`<span style="color:var(--ng);">エラー：${e.message}<br>URLとキーを確認してください</span>`;
+  }
+}
+
+function clearSb(){localStorage.removeItem('yoroku_sb');renderSbArea();}
+
+function openPromote(){
+  const t=APP.user;
+  document.getElementById('pm-grade').value=Math.min(t.grade+1,3);
+  document.getElementById('pm-class').value=t.classNum;
+  document.getElementById('pm-code').value='';
+  clearAlert('promote-alert');
+  document.getElementById('modal-promote').classList.add('open');
+}
+
+function doPromote(){
+  const ng=parseInt(v('pm-grade')),nc=v('pm-class'),ncode=v('pm-code');
+  if(!ncode)return setAlert('promote-alert','クラスコードを入力してください');
+  if(!/^[A-Z0-9]{4,8}$/.test(ncode))return setAlert('promote-alert','英数字4〜8文字にしてください');
+  if(LDB.classes[ncode]&&LDB.classes[ncode]!==APP.user.email)return setAlert('promote-alert','そのコードはすでに使われています');
+  const t=APP.user;
+  if(!t.prevCodes)t.prevCodes=[];
+  t.prevCodes.push(t.classcode);
+  LDB.classes[ncode]=t.email;LDB.c2g[ncode]=ng;
+  t.classcode=ncode;t.grade=ng;t.classNum=nc;
+  LDB.teachers[t.email]=t;saveL();APP.user=t;
+  document.getElementById('modal-promote').classList.remove('open');
+  enterTeacher();
+}
+
+/* 生徒一覧 */
+async function loadStudents(){
+  const t=APP.user;
+  const allCodes=[t.classcode,...(t.prevCodes||[])];
+  const el=document.getElementById('student-list');
+  el.innerHTML='<div class="spinner" style="margin:2rem auto;"></div>';
+
+  try{
+    let rows=[];
+    if(sbOk()){
+      const qs=allCodes.map(c=>`classcode.eq.${c}`).join(',');
+      rows=await sb('students','GET',null,`or=(${qs})&order=number.asc`)||[];
+    }
+    // 生徒ごとにrecordsを集約
+    const map={};
+    rows.forEach(r=>{
+      if(!map[r.id])map[r.id]={id:r.id,name:r.name,sei:r.sei,mei:r.mei,records:{}};
+      map[r.id].records[r.grade]={grade:r.grade,classNum:r.class_num,number:r.number,classcode:r.classcode,answers:r.answers,submitted:r.submitted,yoroku:r.yoroku};
+    });
+    APP.studentCache=Object.values(map).sort((a,b)=>{
+      const ra=a.records[t.grade],rb=b.records[t.grade];
+      return((ra?.number||99)-(rb?.number||99));
+    });
+    document.getElementById('t-count').textContent=APP.studentCache.length+'名';
+    if(!APP.studentCache.length){
+      el.innerHTML='<div class="alert a-info" style="margin-top:1rem;">まだ生徒が登録されていません。クラスコードを生徒に伝えてください。</div>';
+      return;
+    }
+    el.innerHTML=APP.studentCache.map(s=>{
+      const badges=[1,2,3].map(g=>{
+        const r=s.records[g];
+        if(!r)return`<span class="gb gb-none">${gl(g)} —</span>`;
+        return`<span class="gb gb${g}">${gl(g)} ${r.submitted?'✅':'📝'}</span>`;
+      }).join('');
+      const cr=s.records[t.grade];
+      const num=cr?`${cr.classNum}組${cr.number}番`:'—';
+      return`<div class="student-card" onclick="openDetail('${s.id}')">
+        <div class="s-num">${num}</div>
+        <div class="s-name">${s.name}</div>
+        <div class="grade-badges" style="margin-top:.5rem;">${badges}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML=`<div class="alert a-err">読み込みエラー：${e.message}</div>`;
+  }
+}
+
+/* 生徒詳細 */
+function openDetail(sid){
+  const s=APP.studentCache.find(x=>x.id===sid);
+  if(!s)return;
+  APP.detailSid=sid;
+  APP.detailStudent=s;
+  document.getElementById('detail-title').textContent=`📋 ${s.name} さんの回答`;
+  renderDetail(s);
+  showPage('page-detail');
+}
+
+function renderDetail(s){
+  const container=document.getElementById('detail-content');
+  const grades=Object.keys(s.records).map(Number).sort();
+  if(!grades.length){container.innerHTML='<div class="alert a-info">データがありません。</div>';return;}
+  const def=Math.max(...grades);
+  const tabs=grades.map(g=>`<div class="grade-tab g${g}" id="gt-${g}" onclick="switchTab(${g})">${gl(g)}</div>`).join('');
+  const panels=grades.map(g=>`<div class="grade-panel" id="gp-${g}">${buildPanel(s,g)}</div>`).join('');
+  container.innerHTML=`<div class="grade-tabs">${tabs}</div>${panels}`;
+  switchTab(def);
+}
+
+function switchTab(g){
+  document.querySelectorAll('.grade-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.grade-panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById(`gt-${g}`),p=document.getElementById(`gp-${g}`);
+  if(t)t.classList.add('active');if(p)p.classList.add('active');
+}
+
+function buildPanel(s,g){
+  const rec=s.records[g];
+  if(!rec)return`<div class="alert a-info">${gl(g)}のデータはありません。</div>`;
+  const gc=['','var(--g1)','var(--g2)','var(--g3)'][g];
+  let h=`<div style="margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+    <div style="font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:600;color:${gc};">${gl(g)} ${rec.classNum}組${rec.number}番</div>`;
+  h+=rec.submitted?'<span class="badge b-ok">✅ 送信済み</span>':rec.answers?'<span class="badge b-pend">📝 下書き</span>':'<span class="badge b-none">⬜ 未回答</span>';
+  h+='</div>';
+  if(!rec.submitted){
+    h+=`<div class="alert a-info">${gl(g)}の回答はまだ送信されていません。</div>`;
+    return h;
+  }
+  // コピーボタン（メイン）
+  h+=`<div class="y-card" style="border-color:var(--gold);">
+    <h3>📋 Claudeで所見を作る</h3>
+    <p style="font-size:.85rem;color:var(--ink-light);margin-bottom:1rem;">下のボタンで回答内容をコピーして、<strong>このClaudeのチャット画面に貼り付ける</strong>と所見文が作れます。</p>
+    <button class="btn btn-g" onclick="copyForClaude('${s.id}',${g})" style="width:100%;">📋 ${gl(g)}の回答をコピー（Claude貼り付け用）</button>
+    <div id="copy-msg-${g}" style="margin-top:.6rem;font-size:.82rem;color:var(--ok);"></div>
+  </div>`;
+  if(rec.yoroku)h+=renderYoroku(rec.yoroku,g);
+  h+=`<div class="y-card" style="margin-top:1rem;"><h3>📝 ${gl(g)}の回答内容</h3>${buildAnsSummary(rec.answers,g)}</div>`;
+  return h;
+}
+
+function renderYoroku(y,g){
+  return[
+    {k:'character',l:'人物評価（総合所見）',i:'👤'},
+    {k:'learning',l:'学習の状況',i:'📚'},
+    {k:'activity',l:'委員・係・特別活動',i:'🏃'},
+    {k:'club',l:'クラブ活動',i:'⚽'},
+    {k:'future',l:'進路・将来の目標',i:'🎯'},
+    {k:'overall',l:'総合的な評価（所見本文）',i:'📜'}
+  ].filter(s=>y[s.k]).map(s=>`
+    <div class="y-card">
+      <h3>${s.i} ${s.l}</h3>
+      <div class="y-text" id="yt-${g}-${s.k}">${y[s.k]}</div>
+      <button class="copy-btn" style="margin-top:.6rem;" onclick="cpText('yt-${g}-${s.k}')">📋 コピー</button>
+    </div>`).join('');
+}
+
+function buildAnsSummary(ans,g){
+  const secs=getQs(g);let h='';
+  secs.forEach(sec=>{
+    let sh='';
+    sec.qs.forEach(q=>{
+      const val=ans?.[q.id];
+      if(!val||(Array.isArray(val)&&!val.length))return;
+      const disp=Array.isArray(val)?val.join('・'):val;
+      sh+=`<div style="margin-bottom:.4rem;font-size:.85rem;"><span style="color:var(--ink-light);">${q.label}：</span>${disp}</div>`;
+    });
+    if(sh)h+=`<div style="margin-bottom:1rem;"><div style="font-weight:600;color:var(--accent);font-size:.82rem;margin-bottom:.4rem;">${sec.title}</div>${sh}</div>`;
+  });
+  return h||'<div style="color:var(--ink-light);">回答なし</div>';
+}
+
+function copyForClaude(sid,g){
+  const s=APP.studentCache.find(x=>x.id===sid);
+  if(!s)return;
+  const rec=s.records[g];
+  const secs=getQs(g);
+  let txt=`以下は${gl(g)}の生徒の1年間の振り返りアンケートです。この内容をもとに、指導要録の所見文を作成してください。\n学年：${gl(g)}　クラス：${rec.classNum}組　出席番号：${rec.number}番\n\n`;
+  secs.forEach(sec=>{
+    txt+=`【${sec.title}】\n`;
+    sec.qs.forEach(q=>{
+      const val=rec.answers?.[q.id];
+      if(!val||(Array.isArray(val)&&!val.length))return;
+      txt+=`・${q.label}：${Array.isArray(val)?val.join('・'):val}\n`;
+    });
+    txt+='\n';
+  });
+  txt+=`【お願い】\n・指導要録らしい丁寧な文体（「〜である。」調）\n・人物評価・学習状況・活動・総合所見の順で作成\n・資格・クラブ役職・得意科目など具体的な事実を盛り込む`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const el=document.getElementById(`copy-msg-${g}`);
+    if(el){el.textContent='✅ コピーしました！このClaudeのチャットに貼り付けてください。';setTimeout(()=>{el.textContent='';},4000);}
+  });
+}
+
+function cpText(id){const e=document.getElementById(id);if(e)navigator.clipboard.writeText(e.textContent).then(()=>alert('コピーしました'));}
+
+/* Excel ダウンロード */
+function dlExcel(){
+  if(!APP.studentCache.length){alert('生徒データがありません');return;}
+  const t=APP.user;
+  const allGrades=[1,2,3];
+  const header=['生徒番号','姓','名','氏名'];
+  // 全設問のヘッダーを学年別に追加
+  allGrades.forEach(g=>{
+    const prefix=gl(g)+'_';
+    getQs(g).forEach(sec=>sec.qs.forEach(q=>{header.push(prefix+q.label);}));
+  });
+  const rows=[header];
+  APP.studentCache.forEach(s=>{
+    const row=[s.id,s.sei||'',s.mei||'',s.name];
+    allGrades.forEach(g=>{
+      const rec=s.records[g];
+      getQs(g).forEach(sec=>sec.qs.forEach(q=>{
+        const val=rec?.answers?.[q.id]||'';
+        row.push(Array.isArray(val)?val.join('・'):val);
+      }));
+    });
+    rows.push(row);
+  });
+  // CSVとして出力（Excelで開ける）
+  const bom='\uFEFF';
+  const csv=bom+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`振り返りアンケート_${t.grade}年${t.classNum}組.csv`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+/* ===== STUDENT ===== */
+async function regStudent(){
+  const code=toH(v('sr-code')).toUpperCase(),sid=toH(v('sr-sid')),classNum=v('sr-class');
+  const num=toN(v('sr-num')),sei=v('sr-sei').trim(),mei=v('sr-mei').trim(),pw=v('sr-pw');
+  const mis=[];
+  if(!code)mis.push('クラスコード');if(!sid)mis.push('生徒番号');if(!classNum)mis.push('クラス');
+  if(!num||isNaN(num))mis.push('出席番号');if(!sei)mis.push('姓');if(!mei)mis.push('名');if(!pw)mis.push('パスワード');
+  if(mis.length)return setAlert('s-reg-alert','未入力の項目があります：'+mis.join('・'));
+  if(pw.length<4)return setAlert('s-reg-alert','パスワードは4文字以上にしてください');
+  if(!LDB.classes[code])return setAlert('s-reg-alert','クラスコードが見つかりません。担任の先生に確認してください');
+  const grade=LDB.c2g[code];
+  if(!grade)return setAlert('s-reg-alert','クラスコードに対応する学年が見つかりません');
+  const name=`${sei} ${mei}`;
+  setAlert('s-reg-alert','登録中...','info');
+  if(sbOk()){
+    try{
+      const existing=await sb('students','GET',null,`id=eq.${sid}&grade=eq.${grade}`);
+      if(existing?.length)return setAlert('s-reg-alert','その生徒番号はすでに登録されています。ログインしてください');
+      await sbUpsert('students',{id:sid,sei,mei,name,password:pw,grade,class_num:classNum,number:num,classcode:code,answers:null,submitted:false,yoroku:null});
+    }catch(e){return setAlert('s-reg-alert','登録エラー：'+e.message);}
+  }
+  clearAlert('s-reg-alert');
+  APP.user={id:sid,sei,mei,name,password:pw,records:{[grade]:{grade,classNum,number:num,classcode:code,answers:null,submitted:false,yoroku:null}},cg:grade};
+  enterStudent();
+}
+
+async function loginStudent(){
+  const sid=toH(v('sl-sid')),pw=v('sl-pw'),code=toH(v('sl-code')).toUpperCase();
+  const classNum=v('sl-class'),num=toN(v('sl-num'));
+  if(!sid||!pw)return setAlert('s-login-alert','生徒番号・パスワードを入力してください');
+  setAlert('s-login-alert','確認中...','info');
+  if(sbOk()){
+    try{
+      const rows=await sb('students','GET',null,`id=eq.${sid}`)||[];
+      if(!rows.length||rows[0].password!==pw)return setAlert('s-login-alert','生徒番号またはパスワードが違います');
+      let cg=null;
+      if(code){
+        if(!LDB.classes[code])return setAlert('s-login-alert','クラスコードが見つかりません');
+        const g=LDB.c2g[code];if(!g)return setAlert('s-login-alert','クラスコードに対応する学年が見つかりません');
+        cg=g;
+        const ex=rows.find(r=>r.grade===g);
+        if(!ex)await sbUpsert('students',{id:sid,sei:rows[0].sei,mei:rows[0].mei,name:rows[0].name,password:pw,grade:g,class_num:classNum||'',number:num||0,classcode:code,answers:null,submitted:false,yoroku:null});
+        else if(num)await sb('students','PATCH',{number:num,class_num:classNum,classcode:code},`id=eq.${sid}&grade=eq.${g}`);
+      }else{cg=Math.max(...rows.map(r=>r.grade));}
+      const records={};
+      rows.forEach(r=>{records[r.grade]={grade:r.grade,classNum:r.class_num,number:r.number,classcode:r.classcode,answers:r.answers,submitted:r.submitted,yoroku:r.yoroku};});
+      clearAlert('s-login-alert');
+      APP.user={id:sid,sei:rows[0].sei,mei:rows[0].mei,name:rows[0].name,password:pw,records,cg};
+      enterStudent();
+    }catch(e){setAlert('s-login-alert','ログインエラー：'+e.message);}
+  }else{
+    setAlert('s-login-alert','データベースが設定されていません。先生に確認してください');
+  }
+}
+
+function enterStudent(){
+  const u=APP.user,g=u.cg,r=u.records[g];
+  document.getElementById('s-header').textContent=`${gl(g)} ${r.classNum}組${r.number}番 ${u.name}`;
+  const prevGs=Object.keys(u.records).map(Number).filter(x=>x<g);
+  document.getElementById('s-banner').innerHTML=prevGs.length?`
+    <div class="promote-banner"><strong>🌸 持ち上がり</strong>：${prevGs.map(x=>gl(x)).join('・')}のデータが引き継がれています。今年（${gl(g)}）の回答を入力してください。</div>`:'';
+  renderQ();showPage('page-s-dash');
+}
+
+async function saveAns(submit){
+  const u=APP.user,g=u.cg,sid=u.id,ans=collectAns();
+  const msgEl=document.getElementById('save-msg');
+  msgEl.innerHTML='<div class="alert a-info">💾 保存中...</div>';
+  if(sbOk()){
+    try{
+      await sb('students','PATCH',{answers:ans,submitted:submit||false},`id=eq.${sid}&grade=eq.${g}`);
+      if(APP.user.records[g]){APP.user.records[g].answers=ans;if(submit)APP.user.records[g].submitted=true;}
+    }catch(e){msgEl.innerHTML=`<div class="alert a-err">保存エラー：${e.message}</div>`;return;}
+  }
+  msgEl.innerHTML=submit
+    ?'<div class="alert a-ok">✅ アンケートを送信しました！ありがとうございました。</div>'
+    :'<div class="alert a-info">💾 一時保存しました</div>';
+  if(!submit)setTimeout(()=>{msgEl.innerHTML='';},2000);
+}
+
+/* ===== QUESTIONS ===== */
+function getQs(g){
+  const pW={id:'personality',label:'自分の性格を表す言葉（いくつでも）',type:'checkbox',options:['まじめ','明るい','おとなしい','活発','思いやりがある','責任感が強い','素直','粘り強い','リーダーシップがある','マイペース','協調性がある','向上心がある','冷静','ユーモアがある','努力家']};
+  const pF={id:'pfree',label:'自分らしいと思う特徴・強み',type:'ta',ph:'例：好奇心旺盛で色々なことに興味を持つ'};
+  const str={id:'strength',label:'自分の一番の長所・得意なこと',type:'ta',ph:'例：困難なことでも最後まであきらめない'};
+  const wk={id:'weakness',label:'この1年間で直そうと努力したこと',type:'ta',ph:'例：消極的なところを直そうと、授業で積極的に手を挙げるようにした'};
+  const ep={id:'episode',label:'この1年間で一番印象に残った出来事・経験',type:'ta',ph:'例：体育祭でクラスが一つになった瞬間が忘れられない'};
+  const ch={id:'change',label:'この1年間で自分が変わったこと・成長したこと',type:'ta',ph:'例：人前で話すことが苦手だったが、自分から発言できるようになった'};
+  const lf={id:'life',label:'生活態度・基本的な生活習慣',type:'radio',options:['時間・挨拶・身だしなみなど全般しっかりできている','だいたいできている','少し課題がある','改善が必要']};
+  const ls={id:'lesson',label:'授業への取り組み姿勢',type:'radio',options:['積極的に発言・参加する','まじめに集中して取り組む','自分のペースで取り組む','やや受け身になることが多い']};
+  const ld={id:'leader',label:'人をまとめたり引っ張った経験（あれば具体的に）',type:'ta',ph:'例：体育祭でクラスをまとめた、なし'};
+  const ro={id:'role',label:'クラスの係・役割',type:'sel_other',options:['特になし','級長','副級長','体育委員','文化祭委員','その他']};
+  const co={id:'committee',label:'委員会活動',type:'sel',options:['なし','生徒会','広報委員','生活委員','選挙管理委員','体育行事実行委員','中央委員','図書委員','美化委員','文化行事実行委員','保健委員','その他']};
+  const cl={id:'club',label:'クラブ活動',type:'tx',ph:'例：サッカー部、なし'};
+  const cr={id:'clubrole',label:'クラブでの役職（あれば）',type:'sel',options:['なし','部長','副部長','キャプテン','副キャプテン','マネージャー','書記・会計','その他']};
+  const li={id:'license',label:'この1年間で取得した資格・検定',type:'ta',ph:'例：英語検定2級、漢字検定準2級、なし'};
+  const sp={id:'special',label:'参加した特別活動・課外活動',type:'ta',ph:'例：インターンシップ、ボランティア活動、なし'};
+  const su={id:'subject',label:'得意な科目・1番成績が上がった科目',type:'tx',ph:'例：数学（1年間で30点アップ）'};
+  const fr={id:'friends',label:'クラスでの友人関係',type:'radio',options:['友人が多く誰とでも仲が良い','気の合う友人が数人いる','少ないが深い付き合いをしている','あまり積極的ではなかった']};
+  const ev={id:'events',label:'学校行事への参加姿勢',type:'radio',options:['中心となって積極的に参加した','積極的に参加した','参加した','あまり参加できなかった']};
+  const ed={id:'evdet',label:'特に頑張った行事・活動（具体的に）',type:'ta',ph:'例：文化祭でクラス企画のリーダーを担当した'};
+  const fu={id:'future_all',label:'将来の夢・目標（今の時点で）',type:'ta',ph:'例：医療系の仕事に就きたい、まだ決まっていない'};
+  const mo={id:'motto',label:'自分が大切にしていること・座右の銘（あれば）',type:'tx',ph:'例：継続は力なり、なし'};
+  const act={title:'🏃 活動・資格・学習',qs:[lf,ls,ld,ro,co,cl,cr,li,sp,su,fr,ev,ed,fu,mo]};
+  if(g===1)return[
+    {title:'🌟 あなたのこと',qs:[pW,pF,str,wk,ep,ch]},
+    {title:'📘 高校Ⅰ年として',qs:[
+      {id:'start',label:'高校生活が始まって意識して生活したこと',type:'ta',ph:'例：積極的に友達を作るよう心がけた'},
+      {id:'challenge1',label:'この1年で特に頑張ったこと',type:'ta',ph:'例：毎日予習復習を続けた'},
+      {id:'style1',label:'学習面での自分のスタイル',type:'radio',options:['毎日コツコツ取り組むタイプ','試験前に集中するタイプ','興味ある教科に力を入れるタイプ','まだ習慣が確立できていない']},
+      {id:'growth1',label:'入学してから成長したと思うこと',type:'ta',ph:'例：時間の使い方が上手くなった'}
+    ]},act];
+  if(g===2)return[
+    {title:'🌟 あなたのこと',qs:[pW,pF,str,wk,ep,ch]},
+    {title:'📗 高校Ⅱ年として',qs:[
+      {id:'growth2',label:'1年生から成長したと思う点',type:'ta',ph:'例：自分から意見を言えるようになった'},
+      {id:'lead2',label:'集団の中での自分の役割',type:'radio',options:['リーダーとして引っ張る役割','サポート・フォロー役','自分のペースで貢献する','状況によって使い分ける']},
+      {id:'challenge2',label:'この1年で特に頑張ったこと',type:'ta',ph:'例：文化祭の実行委員として企画をまとめた'},
+      {id:'future2',label:'将来や進路について（今の段階で）',type:'ta',ph:'例：理系大学進学を考えている'}
+    ]},act];
+  return[
+    {title:'🌟 あなたのこと',qs:[pW,pF,str,wk,ep,ch]},
+    {title:'📕 高校Ⅲ年として・3年間の総括',qs:[
+      {id:'total3',label:'3年間の高校生活を振り返って',type:'ta',ph:'例：部活に全力で取り組んだ充実した3年間だった'},
+      {id:'growth3',label:'3年間で最も成長したと思うこと',type:'ta',ph:'例：困難でもあきらめず取り組む粘り強さが身についた'},
+      {id:'senior3',label:'最終学年として特に意識したこと',type:'ta',ph:'例：後輩の手本になれるよう行動を意識した'},
+      {id:'future3',label:'卒業後の進路・将来の目標（具体的に）',type:'ta',ph:'例：○○大学○○学部に進学し○○を目指したい'},
+      {id:'msg3',label:'自分自身へのメッセージ・大切にしたこと',type:'ta',ph:'例：失敗を恐れず挑戦することを大切にしてきた'}
+    ]},act];
+}
+
+function renderQ(){
+  const u=APP.user,g=u.cg,saved=u.records[g]?.answers||{},secs=getQs(g);
+  let html='';
+  secs.forEach(sec=>{
+    html+=`<div class="q-sec"><div class="q-sec-title">${sec.title}</div>`;
+    sec.qs.forEach(q=>{
+      const val=saved[q.id];
+      html+=`<div class="q-item"><label>${q.label}</label>`;
+      if(q.type==='ta')html+=`<textarea id="q-${q.id}" placeholder="${q.ph||''}" oninput="updProg()">${val||''}</textarea>`;
+      else if(q.type==='tx')html+=`<input type="text" id="q-${q.id}" placeholder="${q.ph||''}" value="${val||''}" oninput="updProg()">`;
+      else if(q.type==='sel')html+=`<select id="q-${q.id}" onchange="updProg()"><option value="">選択してください</option>${q.options.map(o=>`<option ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+      else if(q.type==='sel_other'){
+        const ov=saved[q.id+'_other']||'';
+        html+=`<select id="q-${q.id}" onchange="updProg();togOther('${q.id}',this.value)"><option value="">選択してください</option>${q.options.map(o=>`<option ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+        html+=`<input type="text" id="q-${q.id}_other" placeholder="内容を入力してください" value="${ov}" style="margin-top:6px;display:${val==='その他'?'block':'none'};" oninput="updProg()">`;
+      }
+      else if(q.type==='radio')html+=`<div class="radio-group">${q.options.map(o=>`<div class="radio-opt"><input type="radio" name="q-${q.id}" id="q-${q.id}-${o}" value="${o}" ${val===o?'checked':''} onchange="updProg()"><label for="q-${q.id}-${o}">${o}</label></div>`).join('')}</div>`;
+      else if(q.type==='checkbox'){const ch=Array.isArray(val)?val:[];html+=`<div class="cb-list">${q.options.map(o=>`<label class="cb-item"><input type="checkbox" name="q-${q.id}" value="${o}" ${ch.includes(o)?'checked':''} onchange="updProg()"> ${o}</label>`).join('')}</div>`;}
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('q-content').innerHTML=html;updProg();
+}
+
+function togOther(id,val){const el=document.getElementById(`q-${id}_other`);if(el)el.style.display=val==='その他'?'block':'none';}
+
+function collectAns(){
+  const g=APP.user.cg,ans={};
+  getQs(g).forEach(sec=>sec.qs.forEach(q=>{
+    if(q.type==='ta'||q.type==='tx'){const e=document.getElementById(`q-${q.id}`);if(e)ans[q.id]=e.value;}
+    else if(q.type==='sel'){const e=document.getElementById(`q-${q.id}`);if(e)ans[q.id]=e.value;}
+    else if(q.type==='sel_other'){const e=document.getElementById(`q-${q.id}`);if(e)ans[q.id]=e.value;const eo=document.getElementById(`q-${q.id}_other`);if(eo)ans[q.id+'_other']=eo.value;}
+    else if(q.type==='radio'){const c=document.querySelector(`input[name="q-${q.id}"]:checked`);if(c)ans[q.id]=c.value;}
+    else if(q.type==='checkbox')ans[q.id]=Array.from(document.querySelectorAll(`input[name="q-${q.id}"]:checked`)).map(c=>c.value);
+  }));
+  return ans;
+}
+
+function updProg(){
+  const g=APP.user.cg,allQ=getQs(g).flatMap(s=>s.qs);let n=0;
+  allQ.forEach(q=>{
+    if(q.type==='ta'||q.type==='tx'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value.trim())n++;}
+    else if(q.type==='sel'||q.type==='sel_other'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value)n++;}
+    else if(q.type==='radio'){if(document.querySelector(`input[name="q-${q.id}"]:checked`))n++;}
+    else if(q.type==='checkbox'){if(document.querySelectorAll(`input[name="q-${q.id}"]:checked`).length>0)n++;}
+  });
+  const pct=Math.round(n/allQ.length*100);
+  document.getElementById('q-bar').style.width=pct+'%';
+  document.getElementById('q-pct').textContent=pct+'%';
+}
+</script>
+</body>
+</html>
