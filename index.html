@@ -457,9 +457,56 @@ function enterTeacher(){
       <button class="btn btn-s btn-sm" onclick="openPromote()">年度更新する →</button>
     </div>`;
   renderSbArea();
+  renderApiKeyArea();
   loadStudents();
   showPage('page-t-dash');
 }
+
+/* APIキー設定UI */
+function getApiKey(){return localStorage.getItem('yoroku_apikey')||'';}
+function saveApiKey(k){localStorage.setItem('yoroku_apikey',k);}
+
+function renderApiKeyArea(){
+  const key=getApiKey();
+  const set=key.length>10;
+  const el=document.getElementById('t-sb-area');
+  // Supabase設定の後ろに追加
+  const apiHtml=`
+    <div class="update-card" style="border-color:${set?'var(--gold)':'var(--ng)'};margin-bottom:1rem;" id="api-key-card">
+      <h3>${set?'✅ AI所見生成：設定済み':'⚠️ AI所見生成：APIキーを設定してください'}</h3>
+      <p style="font-size:.82rem;color:var(--ink-light);margin-bottom:.8rem;">
+        ${set?'生徒の回答を開くと自動でAI所見文を生成します。':'AnthropicのAPIキーを設定すると、生徒の回答を開いたとき自動で所見文を生成します。'}
+      </p>
+      <div style="display:flex;gap:.6rem;align-items:center;">
+        <input type="password" id="apikey-input" placeholder="sk-ant-..." value="${set?'*'.repeat(20):''}" style="flex:1;font-family:monospace;font-size:.85rem;">
+        <button class="btn btn-s btn-sm" onclick="applyApiKey()" style="white-space:nowrap;">保存</button>
+        ${set?`<button class="btn btn-s btn-sm" onclick="clearApiKey()" style="white-space:nowrap;color:var(--ng);">削除</button>`:''}
+      </div>
+      <div id="apikey-msg" style="margin-top:.5rem;font-size:.8rem;"></div>
+    </div>`;
+  // 既存のAPIキーカードを置き換えるか追加
+  const existing=document.getElementById('api-key-card');
+  if(existing){existing.outerHTML=apiHtml;}
+  else{
+    const div=document.createElement('div');
+    div.innerHTML=apiHtml;
+    el.parentNode.insertBefore(div.firstElementChild,el.nextSibling);
+  }
+}
+
+function applyApiKey(){
+  const val=document.getElementById('apikey-input').value.trim();
+  if(!val||val.includes('*'))return;
+  if(!val.startsWith('sk-ant-')&&!val.startsWith('sk-')){
+    document.getElementById('apikey-msg').innerHTML='<span style="color:var(--ng);">形式が正しくありません（sk-ant- で始まるキーを入力してください）</span>';
+    return;
+  }
+  saveApiKey(val);
+  document.getElementById('apikey-msg').innerHTML='<span style="color:var(--ok);">✅ 保存しました</span>';
+  setTimeout(()=>renderApiKeyArea(),1000);
+}
+
+function clearApiKey(){localStorage.removeItem('yoroku_apikey');renderApiKeyArea();}
 
 /* Supabase設定UI */
 function renderSbArea(){
@@ -578,6 +625,15 @@ function openDetail(sid){
   document.getElementById('detail-title').textContent=`📋 ${s.name} さんの回答`;
   renderDetail(s);
   showPage('page-detail');
+  // APIキーがあれば未生成の学年を自動生成
+  if(getApiKey()){
+    Object.keys(s.records).map(Number).forEach(g=>{
+      const rec=s.records[g];
+      if(rec.submitted&&!rec.yoroku){
+        setTimeout(()=>genYoroku(sid,g),500);
+      }
+    });
+  }
 }
 
 function renderDetail(s){
@@ -610,13 +666,13 @@ function buildPanel(s,g){
     h+=`<div class="alert a-info">${gl(g)}の回答はまだ送信されていません。</div>`;
     return h;
   }
-  // コピーボタン（メイン）
-  h+=`<div class="y-card" style="border-color:var(--gold);">
-    <h3>📋 Claudeで所見を作る</h3>
-    <p style="font-size:.85rem;color:var(--ink-light);margin-bottom:1rem;">下のボタンで回答内容をコピーして、<strong>このClaudeのチャット画面に貼り付ける</strong>と所見文が作れます。</p>
-    <button class="btn btn-g" onclick="copyForClaude('${s.id}',${g})" style="width:100%;">📋 ${gl(g)}の回答をコピー（Claude貼り付け用）</button>
-    <div id="copy-msg-${g}" style="margin-top:.6rem;font-size:.82rem;color:var(--ok);"></div>
-  </div>`;
+  // アクションバー
+  h+=`<div class="act-bar">
+    ${getApiKey()?`<button class="btn btn-g" onclick="genYoroku('${s.id}',${g})" style="flex:1;">✨ ${gl(g)}の所見文をAI生成</button>`:''}
+    <button class="btn btn-s" onclick="copyForClaude('${s.id}',${g})">📋 コピー</button>
+    ${rec.yoroku?`<button class="btn btn-s" onclick="copyAll('${s.id}',${g})">📄 所見コピー</button>`:''}
+  </div>
+  <div id="copy-msg-${g}" style="font-size:.82rem;color:var(--ok);margin-bottom:.5rem;"></div>`;
   if(rec.yoroku)h+=renderYoroku(rec.yoroku,g);
   h+=`<div class="y-card" style="margin-top:1rem;"><h3>📝 ${gl(g)}の回答内容</h3>${buildAnsSummary(rec.answers,g)}</div>`;
   return h;
@@ -671,11 +727,83 @@ function copyForClaude(sid,g){
   txt+=`【お願い】\n・指導要録らしい丁寧な文体（「〜である。」調）\n・人物評価・学習状況・活動・総合所見の順で作成\n・資格・クラブ役職・得意科目など具体的な事実を盛り込む`;
   navigator.clipboard.writeText(txt).then(()=>{
     const el=document.getElementById(`copy-msg-${g}`);
-    if(el){el.textContent='✅ コピーしました！このClaudeのチャットに貼り付けてください。';setTimeout(()=>{el.textContent='';},4000);}
+    if(el){el.textContent='✅ コピーしました！';setTimeout(()=>{el.textContent='';},3000);}
   });
 }
 
+function copyAll(sid,g){
+  const s=APP.studentCache.find(x=>x.id===sid);
+  if(!s||!s.records[g]?.yoroku)return;
+  const y=s.records[g].yoroku;
+  const txt=Object.values(y).filter(Boolean).join('\n\n');
+  navigator.clipboard.writeText(txt).then(()=>alert(`${gl(g)}の所見文をコピーしました`));
+}
+
 function cpText(id){const e=document.getElementById(id);if(e)navigator.clipboard.writeText(e.textContent).then(()=>alert('コピーしました'));}
+
+/* AI所見生成 */
+async function genYoroku(sid,g){
+  const s=APP.studentCache.find(x=>x.id===sid);
+  if(!s)return;
+  const rec=s.records[g];
+  if(!rec?.answers)return;
+  const apiKey=getApiKey();
+  if(!apiKey)return;
+  document.getElementById('modal-gen').classList.add('open');
+  try{
+    const prev=[1,2,3].filter(x=>x<g&&s.records[x]?.yoroku).map(x=>`【${gl(x)}の所見（参考）】\n${s.records[x].yoroku.overall||''}`).join('\n\n');
+    const ctx={1:'高校入学直後。新環境への適応、基礎的学習習慣の形成が重要な時期。',2:'高校の中心学年。自主性・リーダーシップの発揮、進路意識の芽生えが際立つ時期。',3:'最終学年。3年間の集大成、進路実現、後輩への模範の時期。'}[g];
+    const prompt=`あなたは高校教師が記入する「指導要録」の専門家です。
+
+【生徒】${s.name} / ${gl(g)} / ${rec.classNum}組${rec.number}番
+【${gl(g)}の特徴】${ctx}
+${prev?'\n'+prev+'\n':''}
+【アンケート回答】
+${JSON.stringify(rec.answers,null,2)}
+
+【文体例】
+・まじめで責任感が強く、与えられた仕事は最後までやりぬくことができる。
+・明るく活発で、クラスでも友人が多い。地道な努力家である。
+
+【指示】
+・${g}年生らしい表現を使う（1年→「高校入学後〜」、2年→「1年生の経験を活かし〜」、3年→「最終学年として〜」）
+${g>1&&prev?'・前学年の所見と比較して成長・変化を明記する\n':''}・資格・クラブ役職・得意科目は具体的に盛り込む
+・指導要録らしい丁寧な文体で書く
+
+JSONのみで出力（マークダウン不要）:
+{"character":"人物評価2〜3文100字","learning":"学習状況1〜2文80字","activity":"委員・係・特別活動1〜2文70字(なければ空)","club":"クラブ活動1文50字(なければ空)","future":"進路1文50字(3年以外や情報なければ空)","overall":"総合評価3〜5文200字・${g}年生らしい完成文"}`;
+
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err?.error?.message||`HTTP ${res.status}`);}
+    const data=await res.json();
+    const txt=data.content.map(c=>c.text||'').join('');
+    let y;try{y=JSON.parse(txt.replace(/```json\n?|```\n?/g,'').trim());}catch{y={overall:txt};}
+
+    // Supabaseに保存
+    if(sbOk()){
+      await sb('students','PATCH',{yoroku:y},`id=eq.${sid}&grade=eq.${g}`);
+    }
+    // キャッシュ更新
+    const cached=APP.studentCache.find(x=>x.id===sid);
+    if(cached&&cached.records[g]){cached.records[g].yoroku=y;}
+
+  }catch(err){
+    document.getElementById('modal-gen').classList.remove('open');
+    alert('AI生成エラー：'+err.message);
+    return;
+  }
+  document.getElementById('modal-gen').classList.remove('open');
+  // パネルを再描画
+  const s2=APP.studentCache.find(x=>x.id===sid);
+  if(s2){
+    const panel=document.getElementById(`gp-${g}`);
+    if(panel){panel.innerHTML=buildPanel(s2,g);switchTab(g);}
+  }
+}
 
 /* Excel ダウンロード */
 function dlExcel(){
