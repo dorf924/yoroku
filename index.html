@@ -851,22 +851,17 @@ async function regStudent(){
   if(pw.length<4)return setAlert('s-reg-alert','パスワードは4文字以上にしてください');
   setAlert('s-reg-alert','確認中...','info');
 
-  // クラスコードをSupabaseで確認（ローカルにない場合）
+  // クラスコードをSupabaseで確認
   let grade=LDB.c2g[code];
   if(!grade&&sbOk()){
     try{
-      const rows=await sb('students','GET',null,`classcode=eq.${code}&limit=1`);
+      const rows=await sb('classcodes','GET',null,`code=eq.${code}&limit=1`);
       if(rows?.length) grade=rows[0].grade;
-    }catch(e){}
+    }catch(e){
+      return setAlert('s-reg-alert','DB接続エラー：'+e.message);
+    }
   }
-  // それでも見つからない場合はクラスコードテーブルを確認
-  if(!grade&&sbOk()){
-    try{
-      const rows=await sb('classcodes','GET',null,`code=eq.${code}&limit=1`).catch(()=>null);
-      if(rows?.length) grade=rows[0].grade;
-    }catch(e){}
-  }
-  if(!grade) return setAlert('s-reg-alert','クラスコードが見つかりません。担任の先生に確認してください');
+  if(!grade) return setAlert('s-reg-alert','クラスコードが見つかりません。担任の先生に確認してください（コード：'+code+'）');
 
   const name=`${sei} ${mei}`;
   if(sbOk()){
