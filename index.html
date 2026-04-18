@@ -157,9 +157,17 @@ const LDB={teachers:{},classes:{},c2g:{}};
 function saveL(){localStorage.setItem('yoroku_ldb',JSON.stringify(LDB));}
 
 /* Supabase */
-function sbConf(){try{return JSON.parse(localStorage.getItem('yoroku_sb')||'{}');}catch{return {};}}
+const SB_DEFAULT={
+  url:'https://enzmoxvyvphghxygpbzu.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuem1veHZ5dnBoZ2h4eWdwYnp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mzc1MjcsImV4cCI6MjA5MDQxMzUyN30.i4-f0BVcMepa6G6HaL7XSsrd3wdTT4_esj63C8vUK6s'
+};
+function sbConf(){
+  try{const c=JSON.parse(localStorage.getItem('yoroku_sb')||'{}');
+    return {url:c.url||SB_DEFAULT.url, key:c.key||SB_DEFAULT.key};
+  }catch{return SB_DEFAULT;}
+}
 function sbSave(url,key){localStorage.setItem('yoroku_sb',JSON.stringify({url,key}));}
-function sbOk(){const c=sbConf();return !!(c.url&&c.key);}
+function sbOk(){return true;} // デフォルト値があるので常にtrue
 async function sb(path,method='GET',body=null,qs=''){
   const{url,key}=sbConf();
   if(!url||!key)throw new Error('Supabase未設定');
@@ -1025,13 +1033,4 @@ function updProg(){
   allQ.forEach(q=>{
     if(q.type==='ta'||q.type==='tx'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value.trim())n++;}
     else if(q.type==='sel'||q.type==='sel_other'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value)n++;}
-    else if(q.type==='radio'){if(document.querySelector(`input[name="q-${q.id}"]:checked`))n++;}
-    else if(q.type==='checkbox'){if(document.querySelectorAll(`input[name="q-${q.id}"]:checked`).length>0)n++;}
-  });
-  const pct=Math.round(n/allQ.length*100);
-  document.getElementById('q-bar').style.width=pct+'%';
-  document.getElementById('q-pct').textContent=pct+'%';
-}
-</script>
-</body>
-</html>
+    else if(q.type==='radio'){if(d
