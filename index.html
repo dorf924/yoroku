@@ -435,6 +435,7 @@ function regTeacher(){
   if(pw.length<4)return setAlert('t-reg-alert','パスワードは4文字以上にしてください');
   LDB.teachers[email]={name,email,grade,classNum,classcode:code,password:pw,prevCodes:[]};
   LDB.classes[code]=email;LDB.c2g[code]=grade;saveL();
+  if(sbOk()) sbUpsert('classcodes',{code,grade,teacher_email:email}).catch(()=>{});
   APP.user=LDB.teachers[email];enterTeacher();
 }
 
@@ -565,6 +566,7 @@ function doPromote(){
   LDB.classes[ncode]=t.email;LDB.c2g[ncode]=ng;
   t.classcode=ncode;t.grade=ng;t.classNum=nc;
   LDB.teachers[t.email]=t;saveL();APP.user=t;
+  if(sbOk()) sbUpsert('classcodes',{code:ncode,grade:ng,teacher_email:t.email}).catch(()=>{});
   document.getElementById('modal-promote').classList.remove('open');
   enterTeacher();
 }
@@ -847,11 +849,26 @@ async function regStudent(){
   if(!num||isNaN(num))mis.push('出席番号');if(!sei)mis.push('姓');if(!mei)mis.push('名');if(!pw)mis.push('パスワード');
   if(mis.length)return setAlert('s-reg-alert','未入力の項目があります：'+mis.join('・'));
   if(pw.length<4)return setAlert('s-reg-alert','パスワードは4文字以上にしてください');
-  if(!LDB.classes[code])return setAlert('s-reg-alert','クラスコードが見つかりません。担任の先生に確認してください');
-  const grade=LDB.c2g[code];
-  if(!grade)return setAlert('s-reg-alert','クラスコードに対応する学年が見つかりません');
+  setAlert('s-reg-alert','確認中...','info');
+
+  // クラスコードをSupabaseで確認（ローカルにない場合）
+  let grade=LDB.c2g[code];
+  if(!grade&&sbOk()){
+    try{
+      const rows=await sb('students','GET',null,`classcode=eq.${code}&limit=1`);
+      if(rows?.length) grade=rows[0].grade;
+    }catch(e){}
+  }
+  // それでも見つからない場合はクラスコードテーブルを確認
+  if(!grade&&sbOk()){
+    try{
+      const rows=await sb('classcodes','GET',null,`code=eq.${code}&limit=1`).catch(()=>null);
+      if(rows?.length) grade=rows[0].grade;
+    }catch(e){}
+  }
+  if(!grade) return setAlert('s-reg-alert','クラスコードが見つかりません。担任の先生に確認してください');
+
   const name=`${sei} ${mei}`;
-  setAlert('s-reg-alert','登録中...','info');
   if(sbOk()){
     try{
       const existing=await sb('students','GET',null,`id=eq.${sid}&grade=eq.${grade}`);
