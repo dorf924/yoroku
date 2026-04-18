@@ -1033,4 +1033,13 @@ function updProg(){
   allQ.forEach(q=>{
     if(q.type==='ta'||q.type==='tx'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value.trim())n++;}
     else if(q.type==='sel'||q.type==='sel_other'){const e=document.getElementById(`q-${q.id}`);if(e&&e.value)n++;}
-    else if(q.type==='radio'){if(d
+    else if(q.type==='radio'){if(document.querySelector(`input[name="q-${q.id}"]:checked`))n++;}
+    else if(q.type==='checkbox'){if(document.querySelectorAll(`input[name="q-${q.id}"]:checked`).length>0)n++;}
+  });
+  const pct=Math.round(n/allQ.length*100);
+  document.getElementById('q-bar').style.width=pct+'%';
+  document.getElementById('q-pct').textContent=pct+'%';
+}
+</script>
+</body>
+</html>
