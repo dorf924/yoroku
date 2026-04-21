@@ -365,6 +365,7 @@ function autoCode(id){document.getElementById(id).value=genCode();}
   </div>
   <div class="dash-content">
     <div id="t-sb-area"></div>
+    <div id="t-import-area"></div>
     <div id="t-promote-area"></div>
     <div class="class-card">
       <div>
@@ -468,6 +469,7 @@ function enterTeacher(){
     </div>`;
   renderSbArea();
   renderApiKeyArea();
+  renderImportArea();
   loadStudents();
   showPage('page-t-dash');
 }
@@ -838,7 +840,52 @@ JSONのみで出力（マークダウン不要）:
 }
 
 /* Excel ダウンロード */
-/* Excelインポート（過去の要録） */
+/* インポート状況UI */
+function renderImportArea(){
+  const data=getExtYoroku();
+  const keys=Object.keys(data);
+  const count=keys.length;
+
+  // 学年別・生徒別に整理
+  const byGrade={1:[],2:[],3:[]};
+  const seen=new Set();
+  keys.forEach(k=>{
+    const m=k.match(/^(.+)_(\d)$/);
+    if(!m)return;
+    const name=m[1],g=parseInt(m[2]);
+    const uid=`${name}_${g}`;
+    if(!seen.has(uid)&&byGrade[g]){byGrade[g].push(name);seen.add(uid);}
+  });
+
+  const gradeRows=[1,2,3].map(g=>{
+    if(!byGrade[g].length)return'';
+    return`<div style="margin-bottom:.6rem;">
+      <div style="font-size:.78rem;font-weight:600;color:var(--accent);margin-bottom:.3rem;">${gl(g)}（${byGrade[g].length}名）</div>
+      <div style="font-size:.78rem;color:var(--ink-light);">${byGrade[g].join('　')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('t-import-area').innerHTML=`
+    <div class="update-card" style="border-color:${count?'var(--ok)':'var(--border)'};margin-bottom:1rem;">
+      <h3>${count?`✅ 過去の要録：${seen.size}件インポート済み`:'📂 過去の要録：未インポート'}</h3>
+      <p style="font-size:.82rem;color:var(--ink-light);margin-bottom:.8rem;">
+        ${count
+          ?'インポート済みの所見はAI生成時に自動参照され、重複しない内容を生成します。'
+          :'過去の要録ExcelをインポートするとAI生成時に自動参照され、重複しない所見を生成します。'}
+      </p>
+      ${gradeRows}
+      <div style="display:flex;gap:.5rem;margin-top:.8rem;">
+        <label class="btn btn-s btn-sm" style="cursor:pointer;">📂 ${count?'再インポート':'要録をインポート'}<input type="file" accept=".xlsx" style="display:none;" onchange="importYorokuExcel(this)"></label>
+        ${count?`<button class="btn btn-s btn-sm" style="color:var(--ng);" onclick="clearImport()">🗑 削除</button>`:''}
+      </div>
+    </div>`;
+}
+
+function clearImport(){
+  if(!confirm('インポートした所見データを全て削除しますか？'))return;
+  localStorage.removeItem('yoroku_ext');
+  renderImportArea();
+}
 async function importYorokuExcel(input){
   const file=input.files[0];
   if(!file)return;
@@ -880,6 +927,7 @@ async function importYorokuExcel(input){
     });
   });
   saveExtYoroku(extData);
+  renderImportArea();
   alert(`✅ ${count}件の所見データをインポートしました。\n今後のAI生成時に自動参照されます。`);
   input.value='';
 }
