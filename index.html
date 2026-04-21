@@ -379,7 +379,8 @@ function autoCode(id){document.getElementById(id).value=genCode();}
     </div>
     <div class="sec-header">
       <h2>生徒一覧</h2>
-      <div style="display:flex;gap:.5rem;">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <label class="btn btn-s btn-sm" style="cursor:pointer;">📂 過去の要録をインポート<input type="file" accept=".xlsx" style="display:none;" onchange="importYorokuExcel(this)"></label>
         <button class="btn btn-s btn-sm" onclick="dlExcel()">📥 Excelダウンロード</button>
         <button class="btn btn-s btn-sm" onclick="loadStudents()">🔄 更新</button>
       </div>
@@ -751,6 +752,12 @@ function copyAll(sid,g){
 
 function cpText(id){const e=document.getElementById(id);if(e)navigator.clipboard.writeText(e.textContent).then(()=>alert('コピーしました'));}
 
+/* 外部所見（Excelインポート）管理 */
+function getExtYoroku(name){
+  try{return JSON.parse(localStorage.getItem('yoroku_ext')||'{}');}catch{return {};}
+}
+function saveExtYoroku(data){localStorage.setItem('yoroku_ext',JSON.stringify(data));}
+
 /* AI所見生成 */
 async function genYoroku(sid,g){
   const s=APP.studentCache.find(x=>x.id===sid);
@@ -761,13 +768,28 @@ async function genYoroku(sid,g){
   if(!apiKey)return;
   document.getElementById('modal-gen').classList.add('open');
   try{
-    const prev=[1,2,3].filter(x=>x<g&&s.records[x]?.yoroku).map(x=>`【${gl(x)}の所見（参考）】\n${s.records[x].yoroku.overall||''}`).join('\n\n');
+    // アプリ内の過去所見
+    const appPrev=[1,2,3].filter(x=>x<g&&s.records[x]?.yoroku).map(x=>
+      `【${gl(x)}の所見（アプリ生成済み）】\n${s.records[x].yoroku.overall||''}`
+    ).join('\n\n');
+
+    // Excelインポートした外部所見（スペース無視で照合）
+    const extData=getExtYoroku();
+    const nameNoSpace=s.name.replace(/\s/g,'');
+    const extPrev=[];
+    for(let x=1;x<g;x++){
+      const text=extData[`${s.name}_${x}`]||extData[`${nameNoSpace}_${x}`];
+      if(text) extPrev.push(`【${gl(x)}の所見（既存要録）】\n${text}`);
+    }
+
+    const allPrev=[...extPrev.length?extPrev:[],appPrev].filter(Boolean).join('\n\n');
     const ctx={1:'高校入学直後。新環境への適応、基礎的学習習慣の形成が重要な時期。',2:'高校の中心学年。自主性・リーダーシップの発揮、進路意識の芽生えが際立つ時期。',3:'最終学年。3年間の集大成、進路実現、後輩への模範の時期。'}[g];
+
     const prompt=`あなたは高校教師が記入する「指導要録」の専門家です。
 
 【生徒】${s.name} / ${gl(g)} / ${rec.classNum}組${rec.number}番
 【${gl(g)}の特徴】${ctx}
-${prev?'\n'+prev+'\n':''}
+${allPrev?'\n'+allPrev+'\n':''}
 【アンケート回答】
 ${JSON.stringify(rec.answers,null,2)}
 
@@ -777,11 +799,11 @@ ${JSON.stringify(rec.answers,null,2)}
 
 【指示】
 ・${g}年生らしい表現を使う（1年→「高校入学後〜」、2年→「1年生の経験を活かし〜」、3年→「最終学年として〜」）
-${g>1&&prev?'・前学年の所見と比較して成長・変化を明記する\n':''}・資格・クラブ役職・得意科目は具体的に盛り込む
+${g>1&&allPrev?`・上記の過去の所見文と【絶対に同じ表現・フレーズを使わない】こと\n・過去の所見で触れた内容は別の角度・表現で描写するか、新たな成長点に焦点を当てること\n`:''}・資格・クラブ役職・得意科目は具体的に盛り込む
 ・指導要録らしい丁寧な文体で書く
 
 JSONのみで出力（マークダウン不要）:
-{"character":"人物評価2〜3文100字","learning":"学習状況1〜2文80字","activity":"委員・係・特別活動1〜2文70字(なければ空)","club":"クラブ活動1文50字(なければ空)","future":"進路1文50字(3年以外や情報なければ空)","overall":"総合評価3〜5文200字・${g}年生らしい完成文"}`;
+{"character":"人物評価2〜3文100字","learning":"学習状況1〜2文80字","activity":"委員・係・特別活動1〜2文70字(なければ空)","club":"クラブ活動1文50字(なければ空)","future":"進路1文50字(3年以外や情報なければ空)","overall":"総合評価3〜5文200字・${g}年生らしい完成文・過去の所見と重複しない表現を使う"}`;
 
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -816,6 +838,52 @@ JSONのみで出力（マークダウン不要）:
 }
 
 /* Excel ダウンロード */
+/* Excelインポート（過去の要録） */
+async function importYorokuExcel(input){
+  const file=input.files[0];
+  if(!file)return;
+  // SheetJSを動的ロード
+  if(!window.XLSX){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+  }
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+
+  // ヘッダー行を確認（1年・2年・3年の列インデックスを取得）
+  const header=rows[0]||[];
+  const gradeColMap={};
+  header.forEach((h,i)=>{
+    if(h==='1年')gradeColMap[1]=i;
+    else if(h==='2年')gradeColMap[2]=i;
+    else if(h==='3年')gradeColMap[3]=i;
+  });
+
+  const extData=getExtYoroku();
+  let count=0;
+  rows.slice(1).forEach(row=>{
+    const name=String(row[1]||'').replace(/\s/g,'');
+    if(!name)return;
+    Object.entries(gradeColMap).forEach(([g,col])=>{
+      const text=row[col];
+      if(text){
+        // スペースあり・なし両方のキーで保存
+        extData[`${name}_${g}`]=text;
+        extData[`${row[1]}_${g}`]=text;
+        count++;
+      }
+    });
+  });
+  saveExtYoroku(extData);
+  alert(`✅ ${count}件の所見データをインポートしました。\n今後のAI生成時に自動参照されます。`);
+  input.value='';
+}
+
 function dlExcel(){
   if(!APP.studentCache.length){alert('生徒データがありません');return;}
   const t=APP.user;
