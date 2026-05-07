@@ -270,16 +270,16 @@ function autoCode(id){document.getElementById(id).value=genCode();}
     <div id="s-login-alert"></div>
     <div class="fg"><label>生徒番号</label><input type="text" id="sl-sid" placeholder="例: 20240123"></div>
     <div class="fg"><label>パスワード</label><input type="password" id="sl-pw"></div>
-    <div class="alert a-warn" style="font-size:.82rem;margin-top:.5rem;">2年目以降の方：今年度のクラスコード・番号も入力してください</div>
-    <div class="fg"><label>今年度のクラスコード</label>
-      <input type="text" id="sl-code" placeholder="今年の担任の先生から" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+    <div class="alert a-info" style="font-size:.82rem;margin-top:.5rem;">📌 同じ学年で続きから回答する場合は上の2つだけでOKです。<br>2年目以降・新年度の場合は下のクラスコードも入力してください。</div>
+    <div class="fg" style="margin-top:.8rem;"><label>今年度のクラスコード（新年度・持ち上がりの場合のみ）</label>
+      <input type="text" id="sl-code" placeholder="新年度の場合のみ入力" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
     </div>
-    <div class="fg"><label>今年度のクラス</label>
+    <div class="fg"><label>今年度のクラス（新年度の場合のみ）</label>
       <select id="sl-class"><option value="">選択してください</option>
         <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option>
       </select>
     </div>
-    <div class="fg"><label>今年度の出席番号</label><input type="number" id="sl-num" placeholder="例: 12"></div>
+    <div class="fg"><label>今年度の出席番号（新年度の場合のみ）</label><input type="number" id="sl-num" placeholder="例: 12"></div>
     <button class="btn btn-p" onclick="loginStudent()">ログイン</button>
   </div>
 </div>
@@ -997,13 +997,21 @@ async function loginStudent(){
       if(!rows.length||rows[0].password!==pw)return setAlert('s-login-alert','生徒番号またはパスワードが違います');
       let cg=null;
       if(code){
-        if(!LDB.classes[code])return setAlert('s-login-alert','クラスコードが見つかりません');
-        const g=LDB.c2g[code];if(!g)return setAlert('s-login-alert','クラスコードに対応する学年が見つかりません');
+        // クラスコードをSupabaseで確認
+        let g=LDB.c2g[code];
+        if(!g){
+          const cr=await sb('classcodes','GET',null,`code=eq.${code}&limit=1`);
+          if(cr?.length) g=cr[0].grade;
+        }
+        if(!g)return setAlert('s-login-alert','クラスコードが見つかりません。担任の先生に確認してください');
         cg=g;
         const ex=rows.find(r=>r.grade===g);
         if(!ex)await sbUpsert('students',{id:sid,sei:rows[0].sei,mei:rows[0].mei,name:rows[0].name,password:pw,grade:g,class_num:classNum||'',number:num||0,classcode:code,answers:null,submitted:false,yoroku:null});
         else if(num)await sb('students','PATCH',{number:num,class_num:classNum,classcode:code},`id=eq.${sid}&grade=eq.${g}`);
-      }else{cg=Math.max(...rows.map(r=>r.grade));}
+      }else{
+        // クラスコードなし→最新学年でログイン
+        cg=Math.max(...rows.map(r=>r.grade));
+      }
       const records={};
       rows.forEach(r=>{records[r.grade]={grade:r.grade,classNum:r.class_num,number:r.number,classcode:r.classcode,answers:r.answers,submitted:r.submitted,yoroku:r.yoroku};});
       clearAlert('s-login-alert');
