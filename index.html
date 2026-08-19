@@ -791,8 +791,23 @@ async function genYoroku(sid,g){
       3:'高校Ⅲ年の1学期。この学年（Ⅲ年）における生徒の姿を評価する。3年間の総括ではなく、Ⅲ年生としての1年間の取り組みを中心に評価すること。'
     }[g];
 
-    // 3年次は専用プロンプト
+    // 3年次は回答を整形して渡す（promptより前に定義）
     const is3rd = g===3;
+    let answerText = '';
+    if(is3rd && rec.answers){
+      const a = rec.answers;
+      if(a.personality3?.length) answerText += `【性格】${a.personality3.join('、')}\n`;
+      if(a.learning3?.length) answerText += `【学習面の取り組み】${a.learning3.join('、')}\n`;
+      if(a.subject_focus3) answerText += `【得意・力を入れた教科】${a.subject_focus3}\n`;
+      if(a.school_life3?.length) answerText += `【学校生活面】${a.school_life3.join('、')}\n`;
+      if(a.other3) answerText += `【その他特記事項】${a.other3}\n`;
+      if(a.club3) answerText += `【部活動・戦績】${a.club3}\n`;
+      if(a.license3) answerText += `【資格・取得時期】${a.license3}\n`;
+      if(a.extracurricular3) answerText += `【課外活動・探究活動】${a.extracurricular3}\n`;
+      if(a.growth3) answerText += `【今年最も成長したこと】${a.growth3}\n`;
+      if(a.future3) answerText += `【進路目標・将来の展望】${a.future3}\n`;
+    }
+
     const prompt = is3rd ? `あなたは高校教師が記入する「指導要録」および「調査書」の専門家です。
 
 【生徒】${s.name} / 高校Ⅲ年 / ${rec.classNum}組${rec.number}番
@@ -836,22 +851,6 @@ ${g>1&&allPrev?'・上記の過去の所見文と絶対に同じ表現・フレ�
 
 JSONのみで出力（マークダウン不要）:
 {"character":"人物評価2〜3文100字","learning":"学習状況1〜2文80字","activity":"委員・係・特別活動1〜2文70字(なければ空)","club":"クラブ活動1文50字(なければ空)","future":"進路1文50字(3年以外や情報なければ空)","overall":"総合評価3〜5文200字・${g}年生らしい完成文・過去の所見と重複しない表現を使う"}`;
-
-    // 3年次は回答を整形して渡す
-    let answerText = '';
-    if(is3rd && rec.answers){
-      const a = rec.answers;
-      if(a.personality3?.length) answerText += `【性格】${a.personality3.join('、')}\n`;
-      if(a.learning3?.length) answerText += `【学習面の取り組み】${a.learning3.join('、')}\n`;
-      if(a.subject_focus3) answerText += `【得意・力を入れた教科】${a.subject_focus3}\n`;
-      if(a.school_life3?.length) answerText += `【学校生活面】${a.school_life3.join('、')}\n`;
-      if(a.other3) answerText += `【その他特記事項】${a.other3}\n`;
-      if(a.club3) answerText += `【部活動・戦績】${a.club3}\n`;
-      if(a.license3) answerText += `【資格・取得時期】${a.license3}\n`;
-      if(a.extracurricular3) answerText += `【課外活動・探究活動】${a.extracurricular3}\n`;
-      if(a.growth3) answerText += `【今年最も成長したこと】${a.growth3}\n`;
-      if(a.future3) answerText += `【進路目標・将来の展望】${a.future3}\n`;
-    }
 
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
