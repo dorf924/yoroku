@@ -799,7 +799,7 @@ async function genYoroku(sid,g){
 【重要】これは高校Ⅲ年（3年生）の1年間の評価です。3年間の総括ではありません。「Ⅲ年生として〜」「最終学年として〜」という表現を使い、この学年での取り組みを評価してください。
 ${allPrev?'\n'+allPrev+'\n':''}
 【高校Ⅲ年1学期振り返りアンケート回答】
-${JSON.stringify(rec.answers,null,2)}
+${answerText||JSON.stringify(rec.answers,null,2)}
 
 【文体例】
 ・まじめで責任感が強く、与えられた仕事は最後までやりぬくことができる。
@@ -816,7 +816,7 @@ ${JSON.stringify(rec.answers,null,2)}
 ・進路目標があれば総合評価に反映する
 ${allPrev?'・過去の所見と絶対に同じ表現・フレーズを使わない\n・新たな成長点や別の角度から人物を描写する\n':''}
 JSONのみで出力（マークダウン不要）:
-{"character":"人物評価2〜3文100字・Ⅲ年生としての性格と人物像","learning":"学習の状況2〜3文100字・Ⅲ年生としての学習面の取り組み","activity":"学校生活・特別活動2〜3文100字・Ⅲ年生としての学校生活","club":"部活動・課外活動1〜2文80字(なければ空)","future":"進路目標1〜2文70字(なければ空)","overall":"調査書「指導上参考となる諸事項」第3学年欄の文章。200〜300字。以下の順序で書く：①部活・委員会・学校行事への参加事実→②人物の特徴・性格→③学習面の取り組みと成果→④進路目標。「〜した。〜である。〜を重ねている。」調の文体。Ⅲ年生としてのこの1年の評価のみ。3年間の総括表現は使わない。"}`
+{"character":"人物評価2〜3文100字・Ⅲ年生としての性格と人物像","learning":"学習の状況2〜3文100字・Ⅲ年生としての学習面の取り組み","activity":"学校生活・特別活動2〜3文100字・Ⅲ年生としての学校生活","club":"部活動・課外活動1〜2文80字(なければ空)","future":"進路目標1〜2文70字(なければ空)","overall":"調査書「指導上参考となる諸事報」第3学年欄の文章。3〜5文200字。以下の順序で書く：①部活・委員会・学園祭などへの参加事実（具体的に）→②人物の特徴・性格→③学習面の取り組みと成果→④進路目標。「〜した。〜である。〜を重ねている。」調の文体。Ⅲ年生としてのこの1年の評価のみ。3年間の総括表現は絶対に使わない。"}`
     : `あなたは高校教師が記入する「指導要録」の専門家です。
 
 【生徒】${s.name} / ${gl(g)} / ${rec.classNum}組${rec.number}番
@@ -836,6 +836,22 @@ ${g>1&&allPrev?'・上記の過去の所見文と絶対に同じ表現・フレ�
 
 JSONのみで出力（マークダウン不要）:
 {"character":"人物評価2〜3文100字","learning":"学習状況1〜2文80字","activity":"委員・係・特別活動1〜2文70字(なければ空)","club":"クラブ活動1文50字(なければ空)","future":"進路1文50字(3年以外や情報なければ空)","overall":"総合評価3〜5文200字・${g}年生らしい完成文・過去の所見と重複しない表現を使う"}`;
+
+    // 3年次は回答を整形して渡す
+    let answerText = '';
+    if(is3rd && rec.answers){
+      const a = rec.answers;
+      if(a.personality3?.length) answerText += `【性格】${a.personality3.join('、')}\n`;
+      if(a.learning3?.length) answerText += `【学習面の取り組み】${a.learning3.join('、')}\n`;
+      if(a.subject_focus3) answerText += `【得意・力を入れた教科】${a.subject_focus3}\n`;
+      if(a.school_life3?.length) answerText += `【学校生活面】${a.school_life3.join('、')}\n`;
+      if(a.other3) answerText += `【その他特記事項】${a.other3}\n`;
+      if(a.club3) answerText += `【部活動・戦績】${a.club3}\n`;
+      if(a.license3) answerText += `【資格・取得時期】${a.license3}\n`;
+      if(a.extracurricular3) answerText += `【課外活動・探究活動】${a.extracurricular3}\n`;
+      if(a.growth3) answerText += `【今年最も成長したこと】${a.growth3}\n`;
+      if(a.future3) answerText += `【進路目標・将来の展望】${a.future3}\n`;
+    }
 
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
